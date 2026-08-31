@@ -56,7 +56,7 @@ jobs:
           cp /tmp/ios-step1/experiments/remotion-rat-blender/validate_manifest.py characters/rat/validation/
 
           cp /tmp/ios-v3/experiments/remotion-rat-blender/refine_rat_v3.py characters/rat/blender/
-          cp /tmp/ios-v3/experiments/remotion-rat-blender/refine_rat_v3_world.py characters/rat/blender/
+          cp migration-bootstrap/refine_rat_v3_world_fixed.py characters/rat/blender/refine_rat_v3_world.py
           cp /tmp/ios-v3/experiments/remotion-rat-blender/diagnose_rat_metric_space.py characters/rat/validation/
           cp /tmp/ios-v3/experiments/remotion-rat-blender/validate_sculpt_v3.py characters/rat/validation/
 
@@ -120,13 +120,12 @@ jobs:
           test -s /tmp/rat/rat-production-v3.blend
           test -s /tmp/rat/rat-production-v3.glb
 
-          set +e
           python characters/rat/validation/validate_sculpt_v3.py \
-            /tmp/rat/rat-production-manifest.json > /tmp/rat/v3-sculpt-gate.txt 2>&1
-          v3_code=$?
-          set -e
+            /tmp/rat/rat-production-manifest.json > /tmp/rat/v3-sculpt-gate.txt 2>&1 || {
+              cat /tmp/rat/v3-sculpt-gate.txt
+              exit 1
+            }
           cat /tmp/rat/v3-sculpt-gate.txt
-          echo "V3_SCULPT_GATE_EXIT=$v3_code" >> /tmp/rat/reconstruction.env
 
       - name: Reproduce Blender-side skin repair
         shell: bash
