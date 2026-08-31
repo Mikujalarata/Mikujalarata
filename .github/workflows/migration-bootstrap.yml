@@ -8,6 +8,10 @@ on:
       - '.github/workflows/migration-bootstrap.yml'
       - 'migration-bootstrap/**'
 
+concurrency:
+  group: 3d-migration-bootstrap
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -162,6 +166,8 @@ jobs:
           set -euxo pipefail
           rm -rf migration-bootstrap
           rm -f .github/workflows/migration-bootstrap.yml
+          git lfs install --local
+          git lfs track '*.blend' '*.glb'
           git add -A
           if git diff --cached --quiet; then
             echo 'No migration changes to commit.'
