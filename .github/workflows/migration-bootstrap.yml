@@ -56,12 +56,13 @@ jobs:
           cp /tmp/ios-v3/experiments/remotion-rat-blender/diagnose_rat_metric_space.py characters/rat/validation/
           cp /tmp/ios-v3/experiments/remotion-rat-blender/validate_sculpt_v3.py characters/rat/validation/
 
-      - name: Install Blender runtime libraries
+      - name: Install Blender and validation dependencies
         shell: bash
         run: |
           set -euxo pipefail
           sudo apt-get update
           sudo apt-get install -y libx11-6 libxxf86vm1 libxfixes3 libxi6 libxrender1 libgl1 libegl1 libxkbcommon0
+          python -m pip install --disable-pip-version-check 'numpy==2.3.3'
 
       - name: Download and integrity-check Blender 4.5.13 LTS
         shell: bash
