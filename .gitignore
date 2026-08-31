@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Node / Remotion
+node_modules/
+out/
+dist/
+*.mp4
+*.mov
+*.webm
+
+# Blender temporary/recovery files
+*.blend1
+*.blend2
+*.blend@
+*.blend~
+*.autosave
+blender/
+blender-*.tar.xz
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Migration/bootstrap scratch
+migration-bootstrap/
