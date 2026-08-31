@@ -1,0 +1,141 @@
+name: 3D Migration Bootstrap
+
+on:
+  push:
+    branches:
+      - migration/3d-animation
+    paths:
+      - '.github/workflows/migration-bootstrap.yml'
+      - 'migration-bootstrap/**'
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Check out migration branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Restore verified Library text sources
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/bootstrap
+          base64 --decode migration-bootstrap/bootstrap-text.tar.gz.b64 > /tmp/bootstrap/sources.tar.gz
+          tar -xzf /tmp/bootstrap/sources.tar.gz -C /tmp/bootstrap
+
+          mkdir -p films/rat-dog
+          cp -a /tmp/bootstrap/film/. films/rat-dog/
+          rm -rf films/rat-dog/.github films/rat-dog/out films/rat-dog/node_modules
+
+          mkdir -p characters/rat/rigging characters/rat/validation
+          cp /tmp/bootstrap/skin/rat-skin-repair-stage/repair_skin_weights_blender.py characters/rat/rigging/
+          cp /tmp/bootstrap/skin/rat-skin-repair-stage/validate_skin_semantics_v3.py characters/rat/validation/
+
+      - name: Import historical Blender source from iOS branches
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git clone --depth 1 --branch blender-rat-step1 https://github.com/rajalarata/ios.git /tmp/ios-step1
+          git clone --depth 1 --branch blender-rat-sculpt-v3-clean https://github.com/rajalarata/ios.git /tmp/ios-v3
+
+          mkdir -p characters/rat/blender characters/rat/validation
+          cp /tmp/ios-step1/experiments/remotion-rat-blender/build_rat.py characters/rat/blender/
+          cp /tmp/ios-step1/experiments/remotion-rat-blender/refine_rat.py characters/rat/blender/
+          cp /tmp/ios-step1/experiments/remotion-rat-blender/render_rat_video.py characters/rat/blender/
+          cp /tmp/ios-step1/experiments/remotion-rat-blender/render_rat_video_workbench.py characters/rat/blender/
+          cp /tmp/ios-step1/experiments/remotion-rat-blender/validate_manifest.py characters/rat/validation/
+
+          cp /tmp/ios-v3/experiments/remotion-rat-blender/refine_rat_v3.py characters/rat/blender/
+          cp /tmp/ios-v3/experiments/remotion-rat-blender/refine_rat_v3_world.py characters/rat/blender/
+          cp /tmp/ios-v3/experiments/remotion-rat-blender/diagnose_rat_metric_space.py characters/rat/validation/
+          cp /tmp/ios-v3/experiments/remotion-rat-blender/validate_sculpt_v3.py characters/rat/validation/
+
+      - name: Download exact PR 8 sculpt candidate
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p input
+          curl -fL --retry 4 --retry-delay 2 \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            'https://api.github.com/repos/rajalarata/ios/actions/artifacts/9736989984/zip' \
+            -o /tmp/sculpt-candidate.zip
+          unzip -q /tmp/sculpt-candidate.zip -d input
+          echo '69aad297b69d6db1621e9fbe5cd975b530968b605424ab627e3c7a19b654ea3d  input/rat-production-v3.blend' | sha256sum -c -
+          echo 'da6ed76cd9f4c189bd416975b7bf442de433ddaca9acebbf65cd5dd469d4d549  input/rat-production-v3.glb' | sha256sum -c -
+
+      - name: Install Blender runtime libraries
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libx11-6 libxxf86vm1 libxfixes3 libxi6 libxrender1 libgl1 libegl1 libxkbcommon0
+
+      - name: Download and integrity-check Blender 4.5.13 LTS
+        shell: bash
+        run: |
+          set -euxo pipefail
+          BASE='https://download.blender.org/release/Blender4.5'
+          FILE='blender-4.5.13-linux-x64.tar.xz'
+          curl -fL --retry 5 --retry-delay 3 "$BASE/$FILE" -o /tmp/$FILE
+          curl -fL --retry 5 --retry-delay 3 "$BASE/blender-4.5.13.sha256" -o /tmp/blender.sha256
+          grep "  $FILE$" /tmp/blender.sha256 > /tmp/blender-linux.sha256
+          (cd /tmp && sha256sum -c blender-linux.sha256)
+          mkdir -p pipeline/blender
+          sha256sum /tmp/$FILE | sed "s#/tmp/##" > pipeline/blender/BLENDER_4.5.13_SHA256.txt
+          mkdir -p /tmp/blender
+          tar -xJf /tmp/$FILE -C /tmp/blender --strip-components=1
+          /tmp/blender/blender --version | head -3
+
+      - name: Reproduce Blender-side skin repair
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/repaired
+          /tmp/blender/blender -b input/rat-production-v3.blend \
+            --python characters/rat/rigging/repair_skin_weights_blender.py \
+            -- --out /tmp/repaired
+
+          python characters/rat/validation/validate_skin_semantics_v3.py \
+            /tmp/repaired/rat-production-v3-skin-repaired.glb
+
+          mkdir -p characters/rat/blender characters/rat/exports characters/rat/qa/skin-repair
+          cp /tmp/repaired/rat-production-v3-skin-repaired.blend characters/rat/blender/rat-production.blend
+          cp /tmp/repaired/rat-production-v3-skin-repaired.glb characters/rat/exports/rat-production.glb
+          cp /tmp/repaired/skin-repair-report.json characters/rat/qa/skin-repair/
+          cp /tmp/repaired/skin-qa-*.png characters/rat/qa/skin-repair/
+          (cd characters/rat && sha256sum blender/rat-production.blend exports/rat-production.glb qa/skin-repair/skin-qa-*.png > SHA256SUMS.txt)
+
+      - name: Verify imported source
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m py_compile characters/rat/blender/*.py characters/rat/rigging/*.py characters/rat/validation/*.py films/rat-dog/scripts/*.py
+          (cd films/rat-dog && node --test src/animation.test.mjs src/performance.test.mjs src/remotion-contract.test.mjs)
+          test -s characters/rat/blender/rat-production.blend
+          test -s characters/rat/exports/rat-production.glb
+
+      - name: Commit reconstructed migration state
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          rm -rf migration-bootstrap
+          rm -f .github/workflows/migration-bootstrap.yml
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No migration changes to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: reconstruct standalone 3D animation workspace'
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
