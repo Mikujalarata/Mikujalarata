@@ -1,0 +1,76 @@
+{
+  "body_head": {
+    "score": 0.9666692581613212,
+    "target": 0.8,
+    "vertices": 9892,
+    "pass": true
+  },
+  "body_chest": {
+    "score": 0.889674512225187,
+    "target": 0.65,
+    "vertices": 1998,
+    "pass": true
+  },
+  "body_left_arm": {
+    "score": 0.7262140268462418,
+    "target": 0.65,
+    "vertices": 3119,
+    "pass": true
+  },
+  "body_right_arm": {
+    "score": 0.7262140393041635,
+    "target": 0.65,
+    "vertices": 3119,
+    "pass": true
+  },
+  "body_left_leg": {
+    "score": 0.7517271160994176,
+    "target": 0.7,
+    "vertices": 4819,
+    "pass": true
+  },
+  "body_right_leg": {
+    "score": 0.7517272071153889,
+    "target": 0.7,
+    "vertices": 4819,
+    "pass": true
+  },
+  "hoodie_torso": {
+    "score": 0.9405073454091137,
+    "target": 0.8,
+    "vertices": 6300,
+    "pass": true
+  },
+  "hoodie_left_sleeve": {
+    "score": 0.8646121666074419,
+    "target": 0.62,
+    "vertices": 1827,
+    "pass": true
+  },
+  "hoodie_right_sleeve": {
+    "score": 0.864612176710917,
+    "target": 0.62,
+    "vertices": 1827,
+    "pass": true
+  },
+  "trousers_waist": {
+    "score": 0.9803002263749494,
+    "target": 0.75,
+    "vertices": 3267,
+    "pass": true
+  },
+  "trousers_left_leg": {
+    "score": 0.9440121150713029,
+    "target": 0.72,
+    "vertices": 2168,
+    "pass": true
+  },
+  "trousers_right_leg": {
+    "score": 0.9440121491664769,
+    "target": 0.72,
+    "vertices": 2168,
+    "pass": true
+  },
+  "pass": true,
+  "failures": []
+}

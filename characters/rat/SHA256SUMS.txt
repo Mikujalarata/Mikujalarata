@@ -1,0 +1,6 @@
+7ddff523c5b20e8eab4d4ab1ce4993ee943e44faf9cc29b176aa33b96da45132  blender/rat-production.blend
+931f36db9e101f8ef4b5c63be2fb68052c8021d7ddd81886b55146520ff26188  exports/rat-production.glb
+7a3e8dd8c8826fc51ccd34d61746a294fef282f96028d16e1e41eea18e92866f  qa/skin-repair/skin-qa-arms.png
+a5b3471170c9b128919250b4ef9acb5f233d7d8b24ca1f7796a8e4f6e448caa1  qa/skin-repair/skin-qa-legs.png
+9a5140b2e2a1846f561d83d1ad50ac6cb549f12aefa125eeb833be9c4b226e91  qa/skin-repair/skin-qa-neutral.png
+37dbe966d77f8d68eceb7a467d06cb28e2fe63258fc6bf800070d9197d7a18a5  qa/skin-repair/skin-qa-spine-head.png

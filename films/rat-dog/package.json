@@ -1,0 +1,27 @@
+{
+  "name": "remotion-3d-rat-dog",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio",
+    "test": "node --test src/animation.test.mjs src/performance.test.mjs src/remotion-contract.test.mjs",
+    "render": "remotion render src/index.tsx RatDogFilm3D out/rat-dog-film-3d.mp4",
+    "render:film": "remotion render src/index.tsx RatDogFilm3D out/rat-dog-film-3d.mp4",
+    "render:legacy": "remotion render src/index.tsx RatDogDance3D out/rat-dog-dance-3d.mp4"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.7.0",
+    "@remotion/cli": "4.0.506",
+    "@remotion/three": "4.0.506",
+    "@types/three": "0.178.0",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "remotion": "4.0.506",
+    "three": "0.178.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "5.8.3"
+  }
+}
