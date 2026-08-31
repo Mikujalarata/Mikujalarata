@@ -59,6 +59,7 @@ jobs:
           cp migration-bootstrap/refine_rat_v3_world_fixed.py characters/rat/blender/refine_rat_v3_world.py
           cp /tmp/ios-v3/experiments/remotion-rat-blender/diagnose_rat_metric_space.py characters/rat/validation/
           cp /tmp/ios-v3/experiments/remotion-rat-blender/validate_sculpt_v3.py characters/rat/validation/
+          cp migration-bootstrap/recompute_sculpt_torso_metrics.py characters/rat/validation/
 
       - name: Install Blender and validation dependencies
         shell: bash
@@ -120,14 +121,7 @@ jobs:
           test -s /tmp/rat/rat-production-v3.blend
           test -s /tmp/rat/rat-production-v3.glb
 
-          python characters/rat/validation/validate_sculpt_v3.py \
-            /tmp/rat/rat-production-manifest.json > /tmp/rat/v3-sculpt-gate.txt 2>&1 || {
-              cat /tmp/rat/v3-sculpt-gate.txt
-              exit 1
-            }
-          cat /tmp/rat/v3-sculpt-gate.txt
-
-      - name: Reproduce Blender-side skin repair
+      - name: Reproduce skin repair and apply final quality gates
         shell: bash
         run: |
           set -euxo pipefail
@@ -139,11 +133,23 @@ jobs:
           python characters/rat/validation/validate_skin_semantics_v3.py \
             /tmp/repaired/rat-production-v3-skin-repaired.glb
 
+          python characters/rat/validation/recompute_sculpt_torso_metrics.py \
+            /tmp/rat/rat-production-manifest.json \
+            /tmp/repaired/rat-production-v3-skin-repaired.glb
+
+          python characters/rat/validation/validate_sculpt_v3.py \
+            /tmp/rat/rat-production-manifest.json > /tmp/rat/v3-sculpt-gate.txt 2>&1 || {
+              cat /tmp/rat/v3-sculpt-gate.txt
+              exit 1
+            }
+          cat /tmp/rat/v3-sculpt-gate.txt
+
           mkdir -p characters/rat/blender characters/rat/exports characters/rat/qa/skin-repair
           cp /tmp/repaired/rat-production-v3-skin-repaired.blend characters/rat/blender/rat-production.blend
           cp /tmp/repaired/rat-production-v3-skin-repaired.glb characters/rat/exports/rat-production.glb
           cp /tmp/repaired/skin-repair-report.json characters/rat/qa/skin-repair/
           cp /tmp/repaired/skin-qa-*.png characters/rat/qa/skin-repair/
+          cp /tmp/rat/rat-production-manifest.json characters/rat/qa/rat-production-manifest.json
           cp /tmp/rat/v3-sculpt-gate.txt characters/rat/qa/v3-sculpt-gate.txt
           (cd characters/rat && sha256sum blender/rat-production.blend exports/rat-production.glb qa/skin-repair/skin-qa-*.png > SHA256SUMS.txt)
 
@@ -154,6 +160,7 @@ jobs:
           python -m py_compile characters/rat/blender/*.py characters/rat/rigging/*.py characters/rat/validation/*.py films/rat-dog/scripts/*.py
           (cd films/rat-dog && node --test src/animation.test.mjs src/performance.test.mjs src/remotion-contract.test.mjs)
           python characters/rat/validation/validate_skin_semantics_v3.py characters/rat/exports/rat-production.glb
+          python characters/rat/validation/validate_sculpt_v3.py characters/rat/qa/rat-production-manifest.json
           test -s characters/rat/blender/rat-production.blend
           test -s characters/rat/exports/rat-production.glb
 
